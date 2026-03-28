@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+
+# Виртуальное окружение
+venv/
+env/
+ENV/
+
+# Логи
+*.log
+
+# Docker
+*.env
+*.env.*
+
+# Системные файлы
+.DS_Store
+Thumbs.db
