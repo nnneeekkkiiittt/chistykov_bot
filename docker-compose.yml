@@ -1,0 +1,11 @@
+version: "3.9"
+
+services:
+  theorems-bot:
+    build: .
+    container_name: theorems-bot
+    env_file: .env          # подтягиваем токен
+    restart: unless-stopped  # перезапуск при падении
+    volumes:
+      - ./theorems.json:/app/theorems.json  # чтобы база была доступна и обновлялась без пересборки
+    command: python main.py
