@@ -4,6 +4,7 @@ from random import randint
 
 from func_theorem import get_theorem_of_the_day
 from func_theorem import get_random_theorem
+from func_theorem import ask
 from dotenv import load_dotenv
 
 from telegram import Update
@@ -15,6 +16,10 @@ with open("theorems.json", "r", encoding="utf-8") as f:
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Привет! Напиши 'теорема дня', и я пришлю сегодняшнюю теорему, или 'моя теорема', и я пришлю тебе, какая теорема ты сегодня!")
+
+async def commands(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    list_of_commands = '"Теорема дня": узнать сегодняшнюю теорему\n"Моя теорема": узнать свою теорему\n"Моя оценка": узнать свою оценку за матан\n"Вячеслав Васильевич, ...": спросить Вячеслава Васильевича о чем то (но обращайтесь правильно!)'
+    await update.message.reply_text(list_of_commands)
 
 async def theorem_of_the_day(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.lower()
@@ -44,17 +49,29 @@ async def marking(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"{randint(0, 10)}",
             parse_mode="HTML")
 
+async def asking(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text = update.message.text
+    if 'Вячеслав Васильевич' in text:
+        ans = ask(text)
+        await update.message.reply_text(ans)
+
+async def wrong_asking(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text = update.message.text.lower()
+    if 'вячеслав васильевич' in text:
+        await update.message.reply_text('Пошел нахуй')
+
 
 if __name__ == "__main__":
     load_dotenv()
     app = ApplicationBuilder().token(os.getenv('TOKEN')).build()
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.TEXT & filters.Regex('моя теорема'), random_theorem))
-    app.add_handler(MessageHandler(filters.TEXT & filters.Regex('Моя теорема'), random_theorem))
-    app.add_handler(MessageHandler(filters.TEXT & filters.Regex('теорема дня'), theorem_of_the_day))
-    app.add_handler(MessageHandler(filters.TEXT & filters.Regex('Теорема дня'), theorem_of_the_day))
-    app.add_handler(MessageHandler(filters.TEXT & filters.Regex('Моя оценка'), marking))
-    app.add_handler(MessageHandler(filters.TEXT & filters.Regex('моя оценка'), marking))
+    app.add_handler(CommandHandler('commands', commands))
+    app.add_handler(MessageHandler(filters.TEXT & filters.Regex(re.compile(r'моя теорема', re.IGNORECASE)), random_theorem))
+    app.add_handler(MessageHandler(filters.TEXT & filters.Regex(re.compile(r'теорема дня', re.IGNORECASE)), theorem_of_the_day))
+    app.add_handler(MessageHandler(filters.TEXT & filters.Regex(re.compile('моя оценка', re.IGNORECASE)), marking))
+    app.add_handler(MessageHandler(filters.TEXT & filters.Regex('Вячеслав Васильевич'), asking))
+    app.add_handler(MessageHandler(filters.TEXT & filters.Regex(re.compile(r'вячеслав васильевич', re.IGNORECASE)), wrong_asking))
+
 
     print('запуск')
     app.run_polling()
