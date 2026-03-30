@@ -14,19 +14,20 @@ import json
 with open("theorems.json", "r", encoding="utf-8") as f:
     theorems = json.load(f)
 
-async def start(update: Update):
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Привет! Напиши 'теорема дня', и я пришлю сегодняшнюю теорему, или 'моя теорема', и я пришлю тебе, какая теорема ты сегодня!")
 
-async def commands(update: Update):
-    list_of_commands = 'Теорема дня: узнать сегодняшнюю теорему\nМоя теорема: узнать свою теорему\nМоя оценка: узнать свою оценку за матан\nВячеслав Васильевич, ...: спросить Вячеслава Васильевича о чем то (но обращайтесь правильно!)'
+async def commands(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    list_of_commands = '"Теорема дня": узнать сегодняшнюю теорему\n"Моя теорема": узнать свою теорему\n"Моя оценка": узнать свою оценку за матан\n"Вячеслав Васильевич, ...": спросить Вячеслава Васильевича о чем то (но обращайтесь правильно!)'
+    await update.message.reply_text(list_of_commands)
 
-async def theorem_of_the_day(update: Update):
+async def theorem_of_the_day(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.lower()
     if "теорема дня" in text:
         theorem = get_theorem_of_the_day()
         await update.message.reply_text(f"Сегодняшняя теорема:\n{theorem['name']}\n{theorem['description']}")
 
-async def random_theorem(update: Update):
+async def random_theorem(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.lower()
     if "моя теорема" in text:
         theorem = get_random_theorem()
@@ -38,7 +39,7 @@ async def random_theorem(update: Update):
             f"{theorem['name']}\n{theorem['description']}",
             parse_mode="HTML")
 
-async def marking(update: Update):
+async def marking(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.lower()
     if "моя оценка" in text:
         user_id = update.message.from_user.id
@@ -48,13 +49,13 @@ async def marking(update: Update):
             f"{randint(0, 10)}",
             parse_mode="HTML")
 
-async def asking(update: Update):
+async def asking(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text
     if 'Вячеслав Васильевич' in text:
         ans = ask(text)
         await update.message.reply_text(ans)
 
-async def wrong_asking(update: Update):
+async def wrong_asking(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.lower()
     if 'вячеслав васильевич' in text:
         await update.message.reply_text('Пошел нахуй')
@@ -64,6 +65,7 @@ if __name__ == "__main__":
     load_dotenv()
     app = ApplicationBuilder().token(os.getenv('TOKEN')).build()
     app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler('commands', commands))
     app.add_handler(MessageHandler(filters.TEXT & filters.Regex(re.compile(r'моя теорема', re.IGNORECASE)), random_theorem))
     app.add_handler(MessageHandler(filters.TEXT & filters.Regex(re.compile(r'теорема дня', re.IGNORECASE)), theorem_of_the_day))
     app.add_handler(MessageHandler(filters.TEXT & filters.Regex(re.compile('моя оценка', re.IGNORECASE)), marking))
